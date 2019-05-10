@@ -12,6 +12,7 @@ file_name:	.asciiz "ste-04.bmp"
 cur:	.asciiz "cur"
 sal:	.asciiz "sal"
 ste:	.asciiz "ste"
+file_type_error: .asciiz "file is not in bmp format. Program will end immediately."
 new_line: 	.asciiz "\n"
 list_size:	.word 255
 mode_list_size:	.word 12
@@ -58,11 +59,7 @@ read_bmp: # args: $a0 - file name
         li $a2, 0		#mode: ignored
         li $v0, 13		#open file 
         syscall
-	move $s1, $v0      # save the file descriptor
-
-	
-#check for errors - if the file was opened
-#...
+	move $s1, $v0		# save the file descriptor
 
 #read file
 	move $a0, $s1
@@ -70,7 +67,19 @@ read_bmp: # args: $a0 - file name
 	li $a2, BMP_FILE_SIZE
 	li $v0, 14		#read from file
 	syscall
-
+	
+#check if it is a bmp file 
+# It must be 'B, M' (42, 4D) in dec 66 and 77
+	la $t0, image
+	lbu $t1, ($t0)
+	li $t2, 66		#check if  first char is B
+	bne $t1, $t2, exit_program
+	la $t0, image + 1
+	lbu $t1, ($t0)
+	li $t2, 77 		#check if second char is M
+	bne $t1, $t2, exit_program
+	
+	
 #close file
 	li $v0, 16
 	move $a0, $s1
@@ -81,7 +90,15 @@ read_bmp: # args: $a0 - file name
 	lw $ra, 4($sp)		#restore (pop) $ra
 	add $sp, $sp, 4
 	jr $ra
-
+	
+exit_program:
+	la $a0, file_type_error	#|
+	li $v0, 4		#|
+	syscall			#|print file_type_error string
+	
+	li $v0, 10		#|
+	syscall 		#|end program
+	
 # ============================================================================
 
 get_color:
@@ -135,9 +152,9 @@ get_color_end:
 
 # args:		$t3 - list size , $t2 - 0, $t1 - list
 print_array: # print array content
-	beq $t2, 255, print_done  # check for array end
+	beq $t2, 255, print_done#check for array end
 	
-	lw $a0, ($t1)       # print list element
+	lw $a0, ($t1)		#print list element
 	li $v0, 1
 	syscall
 	
@@ -195,9 +212,9 @@ compare_loop:
 	bge $a0, $t4, compare_image_done
 	#bge $a0, $t4, compare_image_done
 	
-	add $t2, $t2, 1      # advance loop counter
-	add $t0, $t0, 4      # advance array pointer
-	b compare_loop               # repeat the loop
+	add $t2, $t2, 1     	 # advance loop counter
+	add $t0, $t0, 4     	 # advance array pointer
+	b compare_loop           # repeat the loop
 
 compare_image_done:
 	 	
@@ -233,9 +250,6 @@ print_sal:
 	li $v0, 4
 	syscall
 	b identify_image_exit
-
-
-	
 	
 identify_image_exit:
 	lw $ra, 4($sp)		#restore (pop) $ra

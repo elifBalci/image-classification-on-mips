@@ -7,12 +7,17 @@
 res:	.space 2
 image:	.space BMP_FILE_SIZE
 list:	.space 8160 #32 * 255
-file_name:	.asciiz "ste-04.bmp"
+file_name:	.asciiz "cur-02.bmp"
 new_line: .asciiz "\n"
 list_size:.word 255
 	.text
 main:
+	#read file
 	jal read_bmp
+	#finish program if file is not bmp
+	la $t0, image + 2
+	lb $t1, ($t0)
+	
 	
 	li	$a0, 0	
 	jal     get_color
@@ -45,7 +50,7 @@ read_bmp:
 	sub $sp, $sp, 4		#push $ra to the stack
 	sw $ra,4($sp)
 	sub $sp, $sp, 4		#push $s1
-	sw $s1, 4($sp)
+	sw $s1, 4($sp)	
 	
 #open file
         la $a0, file_name	#file name 
@@ -55,9 +60,7 @@ read_bmp:
         syscall
 	move $s1, $v0      # save the file descriptor
 
-	
-#check for errors - if the file was opened
-#...
+
 
 #read file
 	move $a0, $s1
@@ -65,20 +68,22 @@ read_bmp:
 	li $a2, BMP_FILE_SIZE
 	li $v0, 14		#read from file
 	syscall
-	
 
-	
 
 #close file
 	li $v0, 16
 	move $a0, $s1
         syscall
-	
 	lw $s1, 4($sp)		#restore (pop) $s1
 	add $sp, $sp, 4
 	lw $ra, 4($sp)		#restore (pop) $ra
 	add $sp, $sp, 4
 	jr $ra
+	
+end_program:
+	li $v0, 10	#|
+	syscall 	#|end program
+	
 
 # ============================================================================
 
