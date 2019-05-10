@@ -9,4 +9,4 @@ Then the code prepares the histogram of green. Since steak, salam and currant ca
 In following chart you can see that how different are the mode values. Figure1 : currant and figure2: steak
 ![curvsste](https://user-images.githubusercontent.com/33840767/57133619-0d82f700-6dac-11e9-9872-f6a22f03cc0e.png)
 
-And in the end this program can classify an images of currant, steal and salam based on their mode values of histograms.
+And in the end this program can classify images of currant, steal and salam based on their mode values of histograms.
