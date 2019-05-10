@@ -7,17 +7,14 @@
 res:	.space 2
 image:	.space BMP_FILE_SIZE
 list:	.space 8160 #32 * 255
-file_name:	.asciiz "cur-02.bmp"
+file_name:	.asciiz "ste-04.bmp"
+file_type_error: .asciiz "file is not in bmp format. Program will end immediately."
 new_line: .asciiz "\n"
 list_size:.word 255
 	.text
 main:
 	#read file
 	jal read_bmp
-	#finish program if file is not bmp
-	la $t0, image + 2
-	lb $t1, ($t0)
-	
 	
 	li	$a0, 0	
 	jal     get_color
@@ -69,6 +66,17 @@ read_bmp:
 	li $v0, 14		#read from file
 	syscall
 
+#check if it is a bmp file 
+# It must be 'B, M' (42, 4D) in dec 66 and 77
+	la $t0, image
+	lbu $t1, ($t0)
+	li $t2, 66		#check if  first char is B
+	bne $t1, $t2, exit_program
+	la $t0, image + 1
+	lbu $t1, ($t0)
+	li $t2, 77 		#check if second char is M
+	bne $t1, $t2, exit_program
+	
 
 #close file
 	li $v0, 16
@@ -80,10 +88,13 @@ read_bmp:
 	add $sp, $sp, 4
 	jr $ra
 	
-end_program:
-	li $v0, 10	#|
-	syscall 	#|end program
+exit_program:
+	la $a0, file_type_error	#|
+	li $v0, 4		#|
+	syscall			#|print file_type_error string
 	
+	li $v0, 10		#|
+	syscall 		#|end program
 
 # ============================================================================
 
